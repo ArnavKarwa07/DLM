@@ -1,0 +1,7 @@
+.pptx
+.ppt
+pptx
+ppt
+pycache/
+*.log
+*.tmp
