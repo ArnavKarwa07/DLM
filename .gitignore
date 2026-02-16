@@ -5,3 +5,4 @@ ppt
 pycache/
 *.log
 *.tmp
+logs/
