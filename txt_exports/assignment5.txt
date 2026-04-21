@@ -1,0 +1,269 @@
+# pip install numpy pandas matplotlib tensorflow scikit-learn yfinance
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+from sklearn.preprocessing import MinMaxScaler
+import yfinance as yf
+
+np.random.seed(42)
+tf.random.set_seed(42)
+
+print('TensorFlow version:', tf.__version__)
+
+# Generate or load stock price data
+# Using synthetic stock price data for robust reproducibility
+np.random.seed(42)
+trend = np.linspace(100, 200, 730)
+noise = np.random.normal(0, 5, 730)
+stock_prices = (trend + noise).reshape(-1, 1).astype('float32')
+
+print(f'Generated {len(stock_prices)} days of synthetic stock data')
+
+# Normalize data to [0, 1]
+scaler = MinMaxScaler(feature_range=(0, 1))
+stock_prices_norm = scaler.fit_transform(stock_prices)
+
+print('Stock price shape:', stock_prices.shape)
+print('Normalized price range:', stock_prices_norm.min(), '-', stock_prices_norm.max())
+
+# Split into train and test sets (80-20 split)
+train_size = int(len(stock_prices_norm) * 0.8)
+train_data = stock_prices_norm[:train_size]
+test_data = stock_prices_norm[train_size:]
+
+print(f'Train size: {len(train_data)} | Test size: {len(test_data)}')
+
+# Create sequences for time-series prediction
+def create_sequences(data, seq_length=30):
+    X, y = [], []
+    for i in range(len(data) - seq_length):
+        X.append(data[i:i+seq_length])
+        y.append(data[i+seq_length])
+    return np.array(X), np.array(y)
+
+seq_length = 30  # Use 30 days to predict next day
+X_train, y_train = create_sequences(train_data, seq_length)
+X_test, y_test = create_sequences(test_data, seq_length)
+
+print('X_train shape:', X_train.shape, '| y_train shape:', y_train.shape)
+print('X_test shape :', X_test.shape, '| y_test shape :', y_test.shape)
+
+# 5a: Build and train SimpleRNN model
+rnn_model = keras.Sequential([
+    layers.Input(shape=(seq_length, 1)),
+    layers.SimpleRNN(32, activation='relu', return_sequences=False),
+    layers.Dropout(0.2),
+    layers.Dense(16, activation='relu'),
+    layers.Dense(1),
+])
+
+rnn_model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+rnn_model.summary()
+
+print('\n--- Training SimpleRNN Model ---')
+rnn_history = rnn_model.fit(
+    X_train, y_train,
+    epochs=20,
+    batch_size=32,
+    validation_split=0.2,
+    verbose=1,
+)
+
+rnn_test_loss, rnn_test_mae = rnn_model.evaluate(X_test, y_test, verbose=0)
+print(f'RNN Test Loss (MSE): {rnn_test_loss:.6f}')
+print(f'RNN Test MAE: {rnn_test_mae:.6f}')
+
+# Plot SimpleRNN training history
+plt.figure(figsize=(14, 4))
+
+plt.subplot(1, 2, 1)
+plt.plot(rnn_history.history['loss'], label='Train Loss', linewidth=2)
+plt.plot(rnn_history.history['val_loss'], label='Val Loss', linewidth=2)
+plt.title('SimpleRNN: Loss', fontsize=12)
+plt.xlabel('Epoch')
+plt.ylabel('MSE')
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+plt.subplot(1, 2, 2)
+plt.plot(rnn_history.history['mae'], label='Train MAE', linewidth=2)
+plt.plot(rnn_history.history['val_mae'], label='Val MAE', linewidth=2)
+plt.title('SimpleRNN: MAE', fontsize=12)
+plt.xlabel('Epoch')
+plt.ylabel('MAE')
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Build and train LSTM model (same architecture structure as RNN for fair comparison)
+lstm_model = keras.Sequential([
+    layers.Input(shape=(seq_length, 1)),
+    layers.LSTM(32, activation='relu', return_sequences=False),
+    layers.Dropout(0.2),
+    layers.Dense(16, activation='relu'),
+    layers.Dense(1),
+])
+
+lstm_model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+lstm_model.summary()
+
+print('\n--- Training LSTM Model ---')
+lstm_history = lstm_model.fit(
+    X_train, y_train,
+    epochs=20,
+    batch_size=32,
+    validation_split=0.2,
+    verbose=1,
+)
+
+lstm_test_loss, lstm_test_mae = lstm_model.evaluate(X_test, y_test, verbose=0)
+print(f'LSTM Test Loss (MSE): {lstm_test_loss:.6f}')
+print(f'LSTM Test MAE: {lstm_test_mae:.6f}')
+
+# Plot LSTM training history
+plt.figure(figsize=(14, 4))
+
+plt.subplot(1, 2, 1)
+plt.plot(lstm_history.history['loss'], label='Train Loss', linewidth=2)
+plt.plot(lstm_history.history['val_loss'], label='Val Loss', linewidth=2)
+plt.title('LSTM: Loss', fontsize=12)
+plt.xlabel('Epoch')
+plt.ylabel('MSE')
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+plt.subplot(1, 2, 2)
+plt.plot(lstm_history.history['mae'], label='Train MAE', linewidth=2)
+plt.plot(lstm_history.history['val_mae'], label='Val MAE', linewidth=2)
+plt.title('LSTM: MAE', fontsize=12)
+plt.xlabel('Epoch')
+plt.ylabel('MAE')
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Make predictions on test set
+rnn_predictions = rnn_model.predict(X_test, verbose=0)
+lstm_predictions = lstm_model.predict(X_test, verbose=0)
+
+# Denormalize predictions and actual values
+rnn_pred_denorm = scaler.inverse_transform(rnn_predictions)
+lstm_pred_denorm = scaler.inverse_transform(lstm_predictions)
+y_test_denorm = scaler.inverse_transform(y_test.reshape(-1, 1))
+
+# Calculate additional metrics
+rnn_rmse = np.sqrt(np.mean((rnn_pred_denorm - y_test_denorm) ** 2))
+lstm_rmse = np.sqrt(np.mean((lstm_pred_denorm - y_test_denorm) ** 2))
+
+rnn_mae_denorm = np.mean(np.abs(rnn_pred_denorm - y_test_denorm))
+lstm_mae_denorm = np.mean(np.abs(lstm_pred_denorm - y_test_denorm))
+
+print('\n--- Denormalized Metrics on Test Set ---')
+print(f'RNN RMSE: ${rnn_rmse:.2f}  | LSTM RMSE: ${lstm_rmse:.2f}')
+print(f'RNN MAE:  ${rnn_mae_denorm:.2f}  | LSTM MAE:  ${lstm_mae_denorm:.2f}')
+
+# Create comprehensive metrics comparison table
+metrics_data = {
+    'Metric': [
+        'Test Loss (MSE)',
+        'Test MAE (norm)',
+        'Test RMSE ($)',
+        'Test MAE ($)',
+        'Final Train Loss',
+        'Final Val Loss',
+        'Final Train MAE',
+        'Final Val MAE',
+    ],
+    'SimpleRNN': [
+        f'{rnn_test_loss:.6f}',
+        f'{rnn_test_mae:.6f}',
+        f'{rnn_rmse:.2f}',
+        f'{rnn_mae_denorm:.2f}',
+        f'{rnn_history.history["loss"][-1]:.6f}',
+        f'{rnn_history.history["val_loss"][-1]:.6f}',
+        f'{rnn_history.history["mae"][-1]:.6f}',
+        f'{rnn_history.history["val_mae"][-1]:.6f}',
+    ],
+    'LSTM': [
+        f'{lstm_test_loss:.6f}',
+        f'{lstm_test_mae:.6f}',
+        f'{lstm_rmse:.2f}',
+        f'{lstm_mae_denorm:.2f}',
+        f'{lstm_history.history["loss"][-1]:.6f}',
+        f'{lstm_history.history["val_loss"][-1]:.6f}',
+        f'{lstm_history.history["mae"][-1]:.6f}',
+        f'{lstm_history.history["val_mae"][-1]:.6f}',
+    ]
+}
+
+comparison_df = pd.DataFrame(metrics_data)
+
+print('\n' + '='*70)
+print('MODEL COMPARISON TABLE: SimpleRNN vs LSTM')
+print('='*70)
+print(comparison_df.to_string(index=False))
+print('='*70)
+
+# Compute winner for each metric
+print('\n--- WINNER BY METRIC ---')
+for i in range(len(comparison_df)):
+    if i < 4:  # For loss/error metrics, lower is better
+        rnn_val = float(comparison_df.loc[i, 'SimpleRNN'])
+        lstm_val = float(comparison_df.loc[i, 'LSTM'])
+        winner = 'SimpleRNN' if rnn_val < lstm_val else 'LSTM'
+        print(f'{comparison_df.loc[i, "Metric"]}: {winner} (RNN: {rnn_val:.6f} vs LSTM: {lstm_val:.6f})')
+
+# Comparison of RNN vs LSTM on test predictions
+fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+
+# Plot 1: Training Loss Comparison
+axes[0, 0].plot(rnn_history.history['loss'], label='RNN Train Loss', linewidth=2, alpha=0.7)
+axes[0, 0].plot(lstm_history.history['loss'], label='LSTM Train Loss', linewidth=2, alpha=0.7)
+axes[0, 0].set_title('Training Loss Comparison', fontsize=12, fontweight='bold')
+axes[0, 0].set_xlabel('Epoch')
+axes[0, 0].set_ylabel('MSE')
+axes[0, 0].legend()
+axes[0, 0].grid(True, alpha=0.3)
+
+# Plot 2: Validation Loss Comparison
+axes[0, 1].plot(rnn_history.history['val_loss'], label='RNN Val Loss', linewidth=2, alpha=0.7)
+axes[0, 1].plot(lstm_history.history['val_loss'], label='LSTM Val Loss', linewidth=2, alpha=0.7)
+axes[0, 1].set_title('Validation Loss Comparison', fontsize=12, fontweight='bold')
+axes[0, 1].set_xlabel('Epoch')
+axes[0, 1].set_ylabel('MSE')
+axes[0, 1].legend()
+axes[0, 1].grid(True, alpha=0.3)
+
+# Plot 3: Test Set Predictions vs Actual
+sample_idx = min(200, len(y_test_denorm))  # Show first 200 samples
+x_range = range(sample_idx)
+axes[1, 0].plot(x_range, y_test_denorm[:sample_idx], 'o-', label='Actual', linewidth=2, markersize=4, alpha=0.7)
+axes[1, 0].plot(x_range, rnn_pred_denorm[:sample_idx], 's-', label='RNN Pred', linewidth=2, markersize=4, alpha=0.7)
+axes[1, 0].plot(x_range, lstm_pred_denorm[:sample_idx], '^-', label='LSTM Pred', linewidth=2, markersize=4, alpha=0.7)
+axes[1, 0].set_title('Test Predictions vs Actual (First 200 Samples)', fontsize=12, fontweight='bold')
+axes[1, 0].set_xlabel('Sample Index')
+axes[1, 0].set_ylabel('Stock Price ($)')
+axes[1, 0].legend()
+axes[1, 0].grid(True, alpha=0.3)
+
+# Plot 4: Prediction Errors Distribution
+rnn_errors = np.abs(rnn_pred_denorm[:sample_idx] - y_test_denorm[:sample_idx])
+lstm_errors = np.abs(lstm_pred_denorm[:sample_idx] - y_test_denorm[:sample_idx])
+axes[1, 1].hist(rnn_errors, bins=30, alpha=0.6, label='RNN Error', color='blue')
+axes[1, 1].hist(lstm_errors, bins=30, alpha=0.6, label='LSTM Error', color='orange')
+axes[1, 1].set_title('Absolute Prediction Error Distribution', fontsize=12, fontweight='bold')
+axes[1, 1].set_xlabel('Absolute Error ($)')
+axes[1, 1].set_ylabel('Frequency')
+axes[1, 1].legend()
+axes[1, 1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()

@@ -1,0 +1,165 @@
+# pip install numpy tensorflow tensorflow-datasets matplotlib
+
+# 1) Import required Python libraries and dataset
+import numpy as np
+import tensorflow as tf
+import tensorflow_datasets as tfds
+import matplotlib.pyplot as plt
+
+from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Dense, Dropout, GlobalAveragePooling2D, Input
+from tensorflow.keras.optimizers import Adam
+
+print('TensorFlow version:', tf.__version__)
+
+# Load an application dataset: Oxford-IIIT Pet (pet breed classification)
+(train_raw, val_raw, test_raw), ds_info = tfds.load(
+    'oxford_iiit_pet:3.*.*',
+    split=['train[:80%]', 'train[80%:]', 'test'],
+    as_supervised=True,
+    with_info=True
+)
+
+class_names = ds_info.features['label'].names
+num_classes = len(class_names)
+print('Number of classes:', num_classes)
+print('Example classes:', class_names[:5])
+
+# 2) Normalize dataset and prepare labels
+img_size = 128
+batch_size = 64
+
+def preprocess(image, label):
+    image = tf.image.resize(image, (img_size, img_size))
+    image = tf.cast(image, tf.float32) / 255.0
+    return image, label
+
+def make_dataset(ds, training=False):
+    ds = ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
+    if training:
+        ds = ds.shuffle(2000)
+    ds = ds.batch(batch_size).prefetch(tf.data.AUTOTUNE)
+    return ds
+
+# Use smaller subsets for faster experimentation
+train_raw_small = train_raw.take(2400)
+val_raw_small = val_raw.take(600)
+test_raw_small = test_raw.take(1200)
+
+train_ds = make_dataset(train_raw_small, training=True)
+val_ds = make_dataset(val_raw_small, training=False)
+test_ds = make_dataset(test_raw_small, training=False)
+
+print('Datasets are ready.')
+
+# Input pipeline is prepared in the previous cell at 128x128 for MobileNetV2
+print('Image size:', img_size)
+print('Batch size:', batch_size)
+
+# 3) Identify pretrained model to be used
+base_model = MobileNetV2(
+    weights='imagenet',
+    include_top=False,
+    input_tensor=Input(shape=(img_size, img_size, 3))
+)
+
+# Freeze base model initially for transfer learning
+base_model.trainable = False
+
+# Build classification head
+x = base_model.output
+x = GlobalAveragePooling2D()(x)
+x = Dense(128, activation='relu')(x)
+x = Dropout(0.2)(x)
+outputs = Dense(num_classes, activation='softmax')(x)
+
+model = Model(inputs=base_model.input, outputs=outputs)
+model.compile(
+    optimizer=Adam(learning_rate=1e-3),
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+model.summary()
+
+# 4) Fine-tune pretrained architecture (light fine-tuning for speed)
+base_model.trainable = True
+for layer in base_model.layers[:-20]:
+    layer.trainable = False
+
+model.compile(
+    optimizer=Adam(learning_rate=5e-5),
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+print('Trainable layers:', sum([int(l.trainable) for l in model.layers]))
+
+# 5) Train the model with training dataset
+epochs = 3
+
+history = model.fit(
+    train_ds,
+    validation_data=val_ds,
+    epochs=epochs,
+    verbose=1
+)
+
+# 6) Predict the model with testing dataset
+test_loss, test_acc = model.evaluate(test_ds, verbose=1)
+print(f'Test Loss: {test_loss:.4f}')
+print(f'Test Accuracy: {test_acc:.4f}')
+
+pred_probs = model.predict(test_ds, verbose=1)
+pred_classes = np.argmax(pred_probs, axis=1)
+true_classes = np.concatenate([y.numpy() for _, y in test_ds], axis=0)
+
+# Display a few sample predictions
+sample_n = 10
+for i in range(sample_n):
+    print(f'Sample {i+1}: True={class_names[int(true_classes[i])]}, Pred={class_names[int(pred_classes[i])]}')
+
+# 7) Model performance visualization (accuracy and loss)
+plt.figure(figsize=(12, 5))
+
+# Accuracy plot
+plt.subplot(1, 2, 1)
+plt.plot(history.history['accuracy'], label='Train Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title('Model Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+# Loss plot
+plt.subplot(1, 2, 2)
+plt.plot(history.history['loss'], label='Train Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Model Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Visualize a few test predictions
+sample_images = []
+sample_labels = []
+for image_batch, label_batch in test_ds.unbatch().batch(8).take(1):
+    sample_images = image_batch.numpy()
+    sample_labels = label_batch.numpy()
+
+sample_preds = np.argmax(model.predict(sample_images, verbose=0), axis=1)
+
+plt.figure(figsize=(14, 4))
+for i in range(8):
+    plt.subplot(2, 4, i + 1)
+    plt.imshow(sample_images[i])
+    plt.title(f'T:{class_names[int(sample_labels[i])]}\nP:{class_names[int(sample_preds[i])]}')
+    plt.axis('off')
+plt.tight_layout()
+plt.show()

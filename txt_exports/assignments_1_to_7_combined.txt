@@ -1,0 +1,1270 @@
+# pip install tensorflow numpy pandas matplotlib scikit-learn tensorflow-datasets yfinance
+
+### Assignment 1: Installation and Study of TensorFlow
+
+import tensorflow as tf
+from pathlib import Path
+
+node1=tf.constant(3.0)
+node2=tf.constant(4.0)
+print(node1,node2)
+
+with tf.compat.v1.Session() as sess:
+    a=tf.constant(3,name="input_a")
+    b=tf.constant(4,name="input_b")
+    c=tf.add(a,b,name="Result")
+    writer=tf.compat.v1.summary.FileWriter(str(Path("./logs")),sess.graph)
+    print(sess.run(c))
+    sess.close()
+    writer.close()
+
+
+print("TensorBoard logs written to ./logs")
+
+### Assignment 2: Basic fundamental operations using tensors
+
+import tensorflow as tf
+import numpy as np
+
+# Creating tensors of different dimensions
+# 1D Tensor (Vector)
+tensor_1d = tf.constant([1, 2, 3, 4, 5])
+print("1D Tensor:", tensor_1d)
+print("Shape:", tensor_1d.shape)
+print("Rank:", tf.rank(tensor_1d).numpy())
+
+# 2D Tensor (Matrix)
+tensor_2d = tf.constant([[1, 2, 3], [4, 5, 6]])
+print("\n2D Tensor:\n", tensor_2d)
+print("Shape:", tensor_2d.shape)
+print("Rank:", tf.rank(tensor_2d).numpy())
+
+# 3D Tensor
+tensor_3d = tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+print("\n3D Tensor:\n", tensor_3d)
+print("Shape:", tensor_3d.shape)
+print("Rank:", tf.rank(tensor_3d).numpy())
+
+# 4D Tensor
+tensor_4d = tf.random.normal([2, 3, 4, 5])
+print("\n4D Tensor shape:", tensor_4d.shape)
+print("Rank:", tf.rank(tensor_4d).numpy())
+
+# Special tensors
+zeros = tf.zeros([3, 3])
+ones = tf.ones([2, 4])
+random = tf.random.normal([3, 3])
+range_tensor = tf.range(0, 10, 2)
+
+print("\nZeros:\n", zeros)
+print("\nOnes:\n", ones)
+print("\nRandom:\n", random)
+print("\nRange:", range_tensor)
+
+# Rank (number of dimensions) of tensors
+print("Rank of 1D tensor:", tf.rank(tensor_1d).numpy())
+print("Rank of 2D tensor:", tf.rank(tensor_2d).numpy())
+print("Rank of 3D tensor:", tf.rank(tensor_3d).numpy())
+print("Rank of 4D tensor:", tf.rank(tensor_4d).numpy())
+
+# Alternative: using ndim
+print("\nUsing ndim attribute:")
+print("Rank of 1D tensor:", tensor_1d.ndim)
+print("Rank of 2D tensor:", tensor_2d.ndim)
+print("Rank of 3D tensor:", tensor_3d.ndim)
+print("Rank of 4D tensor:", tensor_4d.ndim)
+
+# Getting detailed information
+print("\n1D Tensor - Rank:", tf.rank(tensor_1d).numpy(), "Shape:", tensor_1d.shape, "Size:", tf.size(tensor_1d).numpy())
+print("2D Tensor - Rank:", tf.rank(tensor_2d).numpy(), "Shape:", tensor_2d.shape, "Size:", tf.size(tensor_2d).numpy())
+print("3D Tensor - Rank:", tf.rank(tensor_3d).numpy(), "Shape:", tensor_3d.shape, "Size:", tf.size(tensor_3d).numpy())
+print("4D Tensor - Rank:", tf.rank(tensor_4d).numpy(), "Shape:", tensor_4d.shape, "Size:", tf.size(tensor_4d).numpy())
+
+# Create sample tensors
+a = tf.constant([1.0, 2.0, 3.0, 4.0])
+b = tf.constant([5.0, 6.0, 7.0, 8.0])
+
+# Addition
+print("Addition:", tf.add(a, b))
+print("Using +:", a + b)
+
+# Subtraction
+print("\nSubtraction:", tf.subtract(a, b))
+print("Using -:", a - b)
+
+# Multiplication (element-wise)
+print("\nElement-wise multiplication:", tf.multiply(a, b))
+print("Using *:", a * b)
+
+# Division
+print("\nDivision:", tf.divide(a, b))
+print("Using /:", a / b)
+
+# Power
+print("\nPower (a^2):", tf.pow(a, 2))
+print("Using **:", a ** 2)
+
+# Matrix multiplication for 2D tensors
+matrix_a = tf.constant([[1.0, 2.0], [3.0, 4.0]])
+matrix_b = tf.constant([[5.0, 6.0], [7.0, 8.0]])
+print("\nMatrix multiplication:")
+print(tf.matmul(matrix_a, matrix_b))
+print("Using @ operator:")
+print(matrix_a @ matrix_b)
+
+# 1D Tensor Diff - calculates differences between adjacent elements
+tensor_1d_diff = tf.constant([1.0, 3.0, 6.0, 10.0, 15.0])
+print("Original 1D tensor:", tensor_1d_diff)
+print("Shape:", tensor_1d_diff.shape)
+print("Rank:", tf.rank(tensor_1d_diff).numpy())
+
+# First order difference
+# TensorFlow doesn't have built-in diff, so we use slicing
+diff_1 = tensor_1d_diff[1:] - tensor_1d_diff[:-1]
+print("\n1st order diff:", diff_1)
+print("Shape:", diff_1.shape)
+
+# Second order difference
+diff_2 = diff_1[1:] - diff_1[:-1]
+print("\n2nd order diff:", diff_2)
+print("Shape:", diff_2.shape)
+
+# Different example
+x = tf.constant([1.0, 4.0, 9.0, 16.0, 25.0])
+print("\n\nAnother example:")
+print("Original:", x)
+diff_x = x[1:] - x[:-1]
+print("1st diff:", diff_x)
+print("Interpretation: differences are [3, 5, 7, 9]")
+
+# 2D Tensor Diff
+tensor_2d_diff = tf.constant([[1.0, 3.0, 6.0, 10.0],
+                               [2.0, 5.0, 9.0, 14.0],
+                               [3.0, 7.0, 12.0, 18.0]])
+print("Original 2D tensor:")
+print(tensor_2d_diff)
+print("Shape:", tensor_2d_diff.shape)
+print("Rank:", tf.rank(tensor_2d_diff).numpy())
+
+# Diff along dimension 0 (rows)
+diff_dim0 = tensor_2d_diff[1:, :] - tensor_2d_diff[:-1, :]
+print("\nDiff along dimension 0 (row-wise):")
+print(diff_dim0)
+print("Shape:", diff_dim0.shape)
+
+# Diff along dimension 1 (columns)
+diff_dim1 = tensor_2d_diff[:, 1:] - tensor_2d_diff[:, :-1]
+print("\nDiff along dimension 1 (column-wise):")
+print(diff_dim1)
+print("Shape:", diff_dim1.shape)
+
+# Second order diff along dimension 1
+first_diff = tensor_2d_diff[:, 1:] - tensor_2d_diff[:, :-1]
+diff_2nd = first_diff[:, 1:] - first_diff[:, :-1]
+print("\n2nd order diff along dimension 1:")
+print(diff_2nd)
+print("Shape:", diff_2nd.shape)
+
+# 3D Tensor Diff
+tensor_3d_diff = tf.reshape(tf.range(24, dtype=tf.float32), [2, 3, 4])
+print("Original 3D tensor:")
+print(tensor_3d_diff)
+print("Shape:", tensor_3d_diff.shape)
+print("Rank:", tf.rank(tensor_3d_diff).numpy())
+
+# Diff along dimension 0
+diff_3d_dim0 = tensor_3d_diff[1:, :, :] - tensor_3d_diff[:-1, :, :]
+print("\nDiff along dimension 0:")
+print(diff_3d_dim0)
+print("Shape:", diff_3d_dim0.shape)
+
+# Diff along dimension 1
+diff_3d_dim1 = tensor_3d_diff[:, 1:, :] - tensor_3d_diff[:, :-1, :]
+print("\nDiff along dimension 1:")
+print(diff_3d_dim1)
+print("Shape:", diff_3d_dim1.shape)
+
+# Diff along dimension 2
+diff_3d_dim2 = tensor_3d_diff[:, :, 1:] - tensor_3d_diff[:, :, :-1]
+print("\nDiff along dimension 2:")
+print(diff_3d_dim2)
+print("Shape:", diff_3d_dim2.shape)
+
+# 4D Tensor Diff (common in deep learning: batch_size, channels, height, width)
+tensor_4d_diff = tf.reshape(tf.range(120, dtype=tf.float32), [2, 3, 4, 5])
+print("Original 4D tensor shape:", tensor_4d_diff.shape)
+print("Rank:", tf.rank(tensor_4d_diff).numpy())
+print("\nFirst slice of 4D tensor:")
+print(tensor_4d_diff[0, 0, :, :])
+
+# Diff along different dimensions
+diff_4d_dim0 = tensor_4d_diff[1:, :, :, :] - tensor_4d_diff[:-1, :, :, :]
+diff_4d_dim1 = tensor_4d_diff[:, 1:, :, :] - tensor_4d_diff[:, :-1, :, :]
+diff_4d_dim2 = tensor_4d_diff[:, :, 1:, :] - tensor_4d_diff[:, :, :-1, :]
+diff_4d_dim3 = tensor_4d_diff[:, :, :, 1:] - tensor_4d_diff[:, :, :, :-1]
+
+print("\nDiff along dimension 0 (batch):", diff_4d_dim0.shape)
+print("Diff along dimension 1 (channels):", diff_4d_dim1.shape)
+print("Diff along dimension 2 (height):", diff_4d_dim2.shape)
+print("Diff along dimension 3 (width):", diff_4d_dim3.shape)
+
+# Example: diff along the last dimension
+print("\nDiff along last dimension (width):")
+print("First slice result:")
+print(diff_4d_dim3[0, 0, :, :])
+
+# Reshaping tensors
+x = tf.range(12)
+print("Original 1D tensor:", x)
+print("Shape:", x.shape)
+
+# Reshape to 2D
+x_2d = tf.reshape(x, [3, 4])
+print("\nReshaped to 3x4:")
+print(x_2d)
+
+# Reshape to 3D
+x_3d = tf.reshape(x, [2, 2, 3])
+print("\nReshaped to 2x2x3:")
+print(x_3d)
+
+# Reshape with -1 (automatic dimension calculation)
+x_auto = tf.reshape(x, [4, -1])
+print("\nReshape with -1 (4x-1 becomes 4x3):")
+print(x_auto)
+
+# Flatten
+x_flat = tf.reshape(x_2d, [-1])
+print("\nFlattened:", x_flat)
+
+# Expand dimensions
+x_expanded = tf.expand_dims(x, axis=0)
+print("\nExpanded dimensions (add batch):", x_expanded.shape)
+
+# Squeeze (remove dimensions of size 1)
+x_squeezable = tf.constant([[[1, 2, 3, 4]]])
+print("\nOriginal shape:", x_squeezable.shape)
+print("After squeeze:", tf.squeeze(x_squeezable).shape)
+
+# Indexing and slicing
+tensor = tf.reshape(tf.range(20), [4, 5])
+print("Original tensor:")
+print(tensor)
+
+# Basic indexing
+print("\nFirst row:", tensor[0])
+print("Element at [2, 3]:", tensor[2, 3])
+
+# Slicing
+print("\nFirst 2 rows:")
+print(tensor[:2])
+print("\nLast 2 columns:")
+print(tensor[:, -2:])
+print("\nEvery other row:")
+print(tensor[::2])
+
+# Advanced indexing with gather
+print("\nRows 1 and 3:")
+print(tf.gather(tensor, [1, 3]))
+
+# Boolean indexing
+mask = tensor > 10
+print("\nMask (elements > 10):")
+print(mask)
+print("Elements > 10:", tf.boolean_mask(tensor, mask))
+
+# Aggregation operations
+data = tf.constant([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]])
+print("Original tensor:")
+print(data)
+
+# Sum
+print("\nSum of all elements:", tf.reduce_sum(data))
+print("Sum along axis 0 (columns):", tf.reduce_sum(data, axis=0))
+print("Sum along axis 1 (rows):", tf.reduce_sum(data, axis=1))
+
+# Mean
+print("\nMean of all elements:", tf.reduce_mean(data))
+print("Mean along axis 0:", tf.reduce_mean(data, axis=0))
+print("Mean along axis 1:", tf.reduce_mean(data, axis=1))
+
+# Max and Min
+print("\nMax value:", tf.reduce_max(data))
+print("Min value:", tf.reduce_min(data))
+print("Max along axis 0:", tf.reduce_max(data, axis=0))
+print("Argmax (index of max):", tf.argmax(tf.reshape(data, [-1])))
+
+# Standard deviation and variance
+print("\nStandard deviation:", tf.math.reduce_std(data))
+print("Variance:", tf.math.reduce_variance(data))
+
+# Concatenation and stacking
+t1 = tf.constant([[1, 2], [3, 4]])
+t2 = tf.constant([[5, 6], [7, 8]])
+
+print("Tensor 1:")
+print(t1)
+print("\nTensor 2:")
+print(t2)
+
+# Concatenate
+print("\nConcatenate along axis 0 (vertical):")
+print(tf.concat([t1, t2], axis=0))
+
+print("\nConcatenate along axis 1 (horizontal):")
+print(tf.concat([t1, t2], axis=1))
+
+# Stack (creates new dimension)
+print("\nStack along axis 0:")
+stacked_0 = tf.stack([t1, t2], axis=0)
+print(stacked_0)
+print("Shape:", stacked_0.shape)
+
+print("\nStack along axis 1:")
+stacked_1 = tf.stack([t1, t2], axis=1)
+print(stacked_1)
+print("Shape:", stacked_1.shape)
+
+# Summary of rank and shapes
+tensors_dict = {
+    "Scalar (0D)": tf.constant(42),
+    "Vector (1D)": tf.constant([1, 2, 3, 4, 5]),
+    "Matrix (2D)": tf.random.normal([3, 4]),
+    "3D Tensor": tf.random.normal([2, 3, 4]),
+    "4D Tensor": tf.random.normal([2, 3, 4, 5]),
+    "5D Tensor": tf.random.normal([2, 3, 4, 5, 6])
+}
+
+print("=" * 70)
+print(f"{'Tensor Type':<20} {'Rank':<10} {'Shape':<25} {'Total Elements':<15}")
+print("=" * 70)
+
+for name, tensor in tensors_dict.items():
+    rank = tf.rank(tensor).numpy()
+    shape = str(tuple(tensor.shape.as_list()))
+    numel = tf.size(tensor).numpy()
+    print(f"{name:<20} {rank:<10} {shape:<25} {numel:<15}")
+
+print("=" * 70)
+
+### Assignment 3: Implement Simple Neural Network using Python
+
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.linear_model import LogisticRegression
+
+np.random.seed(42)
+tf.random.set_seed(42)
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+def tanh(x):
+    return np.tanh(x)
+
+def relu(x):
+    return np.maximum(0, x)
+
+def leaky_relu(x, alpha=0.01):
+    return np.where(x > 0, x, alpha * x)
+
+def softmax(x):
+    x = x - np.max(x, axis=-1, keepdims=True)
+    exp_x = np.exp(x)
+    return exp_x / np.sum(exp_x, axis=-1, keepdims=True)
+
+x_demo = np.array([-2.0, -1.0, 0.0, 1.0, 2.0])
+print("sigmoid:", sigmoid(x_demo))
+print("tanh:", tanh(x_demo))
+print("relu:", relu(x_demo))
+print("leaky_relu:", leaky_relu(x_demo))
+print("softmax:", softmax(x_demo))
+
+def train_perceptron(X, y, lr=0.1, epochs=20):
+    w = np.zeros(X.shape[1] + 1)
+    for _ in range(epochs):
+        for xi, yi in zip(X, y):
+            y_hat = 1 if (np.dot(w[1:], xi) + w[0]) >= 0 else 0
+            update = lr * (yi - y_hat)
+            w[1:] += update * xi
+            w[0] += update
+    return w
+
+def predict_perceptron(X, w):
+    return np.array([1 if (np.dot(w[1:], xi) + w[0]) >= 0 else 0 for xi in X])
+
+X_logic = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+y_and = np.array([0, 0, 0, 1])
+y_or = np.array([0, 1, 1, 1])
+
+w_and = train_perceptron(X_logic, y_and)
+w_or = train_perceptron(X_logic, y_or)
+
+print("AND predictions:", predict_perceptron(X_logic, w_and))
+print("OR predictions:", predict_perceptron(X_logic, w_or))
+
+def sigmoid_deriv(s):
+    return s * (1 - s)
+
+X_xor = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+y_xor = np.array([[0], [1], [1], [0]])
+
+W1 = np.random.randn(2, 2)
+b1 = np.zeros((1, 2))
+W2 = np.random.randn(2, 1)
+b2 = np.zeros((1, 1))
+
+lr = 0.5
+for _ in range(10000):
+    z1 = np.dot(X_xor, W1) + b1
+    a1 = sigmoid(z1)
+    z2 = np.dot(a1, W2) + b2
+    a2 = sigmoid(z2)
+
+    error = y_xor - a2
+    d2 = error * sigmoid_deriv(a2)
+    d1 = np.dot(d2, W2.T) * sigmoid_deriv(a1)
+
+    W2 += lr * np.dot(a1.T, d2)
+    b2 += lr * np.sum(d2, axis=0, keepdims=True)
+    W1 += lr * np.dot(X_xor.T, d1)
+    b1 += lr * np.sum(d1, axis=0, keepdims=True)
+
+xor_pred = (a2 > 0.5).astype(int)
+print("XOR predictions:", xor_pred.ravel())
+
+data_path = Path(__file__).resolve().parent.parent / "diabetes.csv"
+df = pd.read_csv(data_path)
+df = df.dropna()
+
+target_col = "Outcome" if "Outcome" in df.columns else df.columns[-1]
+X = df.drop(columns=[target_col])
+y = df[target_col]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y if y.nunique() > 1 else None
+ )
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+ann = tf.keras.Sequential([
+    tf.keras.layers.Input(shape=(X_train_scaled.shape[1],)),
+    tf.keras.layers.Dense(50, activation="relu"),
+    tf.keras.layers.Dense(30, activation="relu"),
+    tf.keras.layers.Dense(1, activation="sigmoid"),
+])
+ann.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
+history = ann.fit(X_train_scaled, y_train, epochs=50, batch_size=16, verbose=0)
+
+ann_probs = ann.predict(X_test_scaled, verbose=0).ravel()
+ann_pred = (ann_probs >= 0.5).astype(int)
+
+ml = LogisticRegression(max_iter=1000)
+ml.fit(X_train_scaled, y_train)
+ml_pred = ml.predict(X_test_scaled)
+
+avg = "binary" if y.nunique() == 2 else "weighted"
+
+def metrics_row(name, y_true, y_pred):
+    return {
+        "Model": name,
+        "Accuracy": accuracy_score(y_true, y_pred),
+        "Precision": precision_score(y_true, y_pred, average=avg, zero_division=0),
+        "Recall": recall_score(y_true, y_pred, average=avg, zero_division=0),
+        "F1": f1_score(y_true, y_pred, average=avg, zero_division=0),
+    }
+
+results = pd.DataFrame([
+    metrics_row("ANN (TensorFlow)", y_test, ann_pred),
+    metrics_row("ML (LogisticRegression)", y_test, ml_pred),
+])
+print(results)
+
+plt.figure(figsize=(6, 4))
+plt.plot(history.history["loss"], label="Train loss")
+plt.title("ANN Loss vs Epochs")
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+### Assignment 4: Building a Convolution Neural Network (CNN) model for Image Classification using Python
+
+# TensorFlow / Keras imports
+import numpy as np
+import tensorflow as tf
+import tensorflow_datasets as tfds
+from tensorflow import keras
+from tensorflow.keras import layers
+import matplotlib.pyplot as plt
+
+print('TensorFlow version:', tf.__version__)
+
+# Load an application dataset: TF Flowers (flower species classification)
+(train_raw, test_raw), ds_info = tfds.load(
+    'tf_flowers',
+    split=['train[:80%]', 'train[80%:]'],
+    as_supervised=True,
+    with_info=True
+)
+
+class_names = ds_info.features['label'].names
+num_classes = len(class_names)
+
+# Convert to NumPy for the CNN workflow and resize to a uniform shape
+img_size = 64
+max_train = 4000
+max_test = 1000
+
+def ds_to_numpy(ds, max_samples):
+    images, labels = [], []
+    for i, (img, label) in enumerate(tfds.as_numpy(ds)):
+        if i >= max_samples:
+            break
+        img = tf.image.resize(img, (img_size, img_size)).numpy().astype('float32')
+        images.append(img)
+        labels.append(label)
+    return np.array(images), np.array(labels)
+
+x_train, y_train = ds_to_numpy(train_raw, max_train)
+x_test, y_test = ds_to_numpy(test_raw, max_test)
+
+print('x_train shape:', x_train.shape)
+print('x_test shape:', x_test.shape)
+print('y_train shape:', y_train.shape)
+print('y_test shape:', y_test.shape)
+print('Classes:', class_names)
+
+# Normalize image pixel values to [0, 1]
+x_train = x_train.astype('float32') / 255.0
+x_test = x_test.astype('float32') / 255.0
+
+# Convert labels to one-hot encoding
+y_train_cat = keras.utils.to_categorical(y_train, num_classes)
+y_test_cat = keras.utils.to_categorical(y_test, num_classes)
+
+print('One-hot y_train shape:', y_train_cat.shape)
+
+# Display sample images
+plt.figure(figsize=(10, 4))
+for i in range(10):
+    plt.subplot(2, 5, i + 1)
+    plt.imshow(x_train[i])
+    plt.title(class_names[int(y_train[i])])
+    plt.axis('off')
+plt.tight_layout()
+plt.show()
+
+# Build CNN model using tensorflow.keras
+model = keras.Sequential([
+    layers.Conv2D(32, (3, 3), activation='relu', padding='same', input_shape=(img_size, img_size, 3)),
+    layers.Conv2D(32, (3, 3), activation='relu', padding='same'),
+    layers.MaxPooling2D((2, 2)),
+    layers.Dropout(0.25),
+
+    layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
+    layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
+    layers.MaxPooling2D((2, 2)),
+    layers.Dropout(0.25),
+
+    layers.Flatten(),
+    layers.Dense(256, activation='relu'),
+    layers.Dropout(0.5),
+    layers.Dense(num_classes, activation='softmax')
+])
+
+model.summary()
+
+# Compile model
+model.compile(
+    optimizer='adam',
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+# Train model
+history = model.fit(
+    x_train,
+    y_train_cat,
+    epochs=5,
+    batch_size=64,
+    validation_split=0.1,
+    verbose=1
+)
+
+# Evaluate model on test data
+test_loss, test_acc = model.evaluate(x_test, y_test_cat, verbose=0)
+print(f'Test Loss: {test_loss:.4f}')
+print(f'Test Accuracy: {test_acc:.4f}')
+
+# Plot training and validation accuracy/loss
+plt.figure(figsize=(12, 4))
+
+plt.subplot(1, 2, 1)
+plt.plot(history.history['accuracy'], label='Train Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title('Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend()
+
+plt.subplot(1, 2, 2)
+plt.plot(history.history['loss'], label='Train Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+
+# Predict on a few test samples
+pred_probs = model.predict(x_test[:10], verbose=0)
+pred_labels = pred_probs.argmax(axis=1)
+true_labels = y_test[:10].flatten()
+
+plt.figure(figsize=(12, 5))
+for i in range(10):
+    plt.subplot(2, 5, i + 1)
+    plt.imshow(x_test[i])
+    plt.title(f'T: {class_names[true_labels[i]]}\nP: {class_names[pred_labels[i]]}')
+    plt.axis('off')
+plt.tight_layout()
+plt.show()
+
+### Assignment 5: Build Recurrent Neural Network (RNN) model for classification using Python
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+from sklearn.preprocessing import MinMaxScaler
+import yfinance as yf
+
+np.random.seed(42)
+tf.random.set_seed(42)
+
+print('TensorFlow version:', tf.__version__)
+
+# Generate or load stock price data
+# Using synthetic stock price data for robust reproducibility
+np.random.seed(42)
+trend = np.linspace(100, 200, 730)
+noise = np.random.normal(0, 5, 730)
+stock_prices = (trend + noise).reshape(-1, 1).astype('float32')
+
+print(f'Generated {len(stock_prices)} days of synthetic stock data')
+
+# Normalize data to [0, 1]
+scaler = MinMaxScaler(feature_range=(0, 1))
+stock_prices_norm = scaler.fit_transform(stock_prices)
+
+print('Stock price shape:', stock_prices.shape)
+print('Normalized price range:', stock_prices_norm.min(), '-', stock_prices_norm.max())
+
+# Split into train and test sets (80-20 split)
+train_size = int(len(stock_prices_norm) * 0.8)
+train_data = stock_prices_norm[:train_size]
+test_data = stock_prices_norm[train_size:]
+
+print(f'Train size: {len(train_data)} | Test size: {len(test_data)}')
+
+# Create sequences for time-series prediction
+def create_sequences(data, seq_length=30):
+    X, y = [], []
+    for i in range(len(data) - seq_length):
+        X.append(data[i:i+seq_length])
+        y.append(data[i+seq_length])
+    return np.array(X), np.array(y)
+
+seq_length = 30  # Use 30 days to predict next day
+X_train, y_train = create_sequences(train_data, seq_length)
+X_test, y_test = create_sequences(test_data, seq_length)
+
+print('X_train shape:', X_train.shape, '| y_train shape:', y_train.shape)
+print('X_test shape :', X_test.shape, '| y_test shape :', y_test.shape)
+
+# 5a: Build and train SimpleRNN model
+rnn_model = keras.Sequential([
+    layers.Input(shape=(seq_length, 1)),
+    layers.SimpleRNN(32, activation='relu', return_sequences=False),
+    layers.Dropout(0.2),
+    layers.Dense(16, activation='relu'),
+    layers.Dense(1),
+])
+
+rnn_model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+rnn_model.summary()
+
+print('\n--- Training SimpleRNN Model ---')
+rnn_history = rnn_model.fit(
+    X_train, y_train,
+    epochs=20,
+    batch_size=32,
+    validation_split=0.2,
+    verbose=1,
+)
+
+rnn_test_loss, rnn_test_mae = rnn_model.evaluate(X_test, y_test, verbose=0)
+print(f'RNN Test Loss (MSE): {rnn_test_loss:.6f}')
+print(f'RNN Test MAE: {rnn_test_mae:.6f}')
+
+# Plot SimpleRNN training history
+plt.figure(figsize=(14, 4))
+
+plt.subplot(1, 2, 1)
+plt.plot(rnn_history.history['loss'], label='Train Loss', linewidth=2)
+plt.plot(rnn_history.history['val_loss'], label='Val Loss', linewidth=2)
+plt.title('SimpleRNN: Loss', fontsize=12)
+plt.xlabel('Epoch')
+plt.ylabel('MSE')
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+plt.subplot(1, 2, 2)
+plt.plot(rnn_history.history['mae'], label='Train MAE', linewidth=2)
+plt.plot(rnn_history.history['val_mae'], label='Val MAE', linewidth=2)
+plt.title('SimpleRNN: MAE', fontsize=12)
+plt.xlabel('Epoch')
+plt.ylabel('MAE')
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Build and train LSTM model (same architecture structure as RNN for fair comparison)
+lstm_model = keras.Sequential([
+    layers.Input(shape=(seq_length, 1)),
+    layers.LSTM(32, activation='relu', return_sequences=False),
+    layers.Dropout(0.2),
+    layers.Dense(16, activation='relu'),
+    layers.Dense(1),
+])
+
+lstm_model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+lstm_model.summary()
+
+print('\n--- Training LSTM Model ---')
+lstm_history = lstm_model.fit(
+    X_train, y_train,
+    epochs=20,
+    batch_size=32,
+    validation_split=0.2,
+    verbose=1,
+)
+
+lstm_test_loss, lstm_test_mae = lstm_model.evaluate(X_test, y_test, verbose=0)
+print(f'LSTM Test Loss (MSE): {lstm_test_loss:.6f}')
+print(f'LSTM Test MAE: {lstm_test_mae:.6f}')
+
+# Plot LSTM training history
+plt.figure(figsize=(14, 4))
+
+plt.subplot(1, 2, 1)
+plt.plot(lstm_history.history['loss'], label='Train Loss', linewidth=2)
+plt.plot(lstm_history.history['val_loss'], label='Val Loss', linewidth=2)
+plt.title('LSTM: Loss', fontsize=12)
+plt.xlabel('Epoch')
+plt.ylabel('MSE')
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+plt.subplot(1, 2, 2)
+plt.plot(lstm_history.history['mae'], label='Train MAE', linewidth=2)
+plt.plot(lstm_history.history['val_mae'], label='Val MAE', linewidth=2)
+plt.title('LSTM: MAE', fontsize=12)
+plt.xlabel('Epoch')
+plt.ylabel('MAE')
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Make predictions on test set
+rnn_predictions = rnn_model.predict(X_test, verbose=0)
+lstm_predictions = lstm_model.predict(X_test, verbose=0)
+
+# Denormalize predictions and actual values
+rnn_pred_denorm = scaler.inverse_transform(rnn_predictions)
+lstm_pred_denorm = scaler.inverse_transform(lstm_predictions)
+y_test_denorm = scaler.inverse_transform(y_test.reshape(-1, 1))
+
+# Calculate additional metrics
+rnn_rmse = np.sqrt(np.mean((rnn_pred_denorm - y_test_denorm) ** 2))
+lstm_rmse = np.sqrt(np.mean((lstm_pred_denorm - y_test_denorm) ** 2))
+
+rnn_mae_denorm = np.mean(np.abs(rnn_pred_denorm - y_test_denorm))
+lstm_mae_denorm = np.mean(np.abs(lstm_pred_denorm - y_test_denorm))
+
+print('\n--- Denormalized Metrics on Test Set ---')
+print(f'RNN RMSE: ${rnn_rmse:.2f}  | LSTM RMSE: ${lstm_rmse:.2f}')
+print(f'RNN MAE:  ${rnn_mae_denorm:.2f}  | LSTM MAE:  ${lstm_mae_denorm:.2f}')
+
+# Create comprehensive metrics comparison table
+metrics_data = {
+    'Metric': [
+        'Test Loss (MSE)',
+        'Test MAE (norm)',
+        'Test RMSE ($)',
+        'Test MAE ($)',
+        'Final Train Loss',
+        'Final Val Loss',
+        'Final Train MAE',
+        'Final Val MAE',
+    ],
+    'SimpleRNN': [
+        f'{rnn_test_loss:.6f}',
+        f'{rnn_test_mae:.6f}',
+        f'{rnn_rmse:.2f}',
+        f'{rnn_mae_denorm:.2f}',
+        f'{rnn_history.history["loss"][-1]:.6f}',
+        f'{rnn_history.history["val_loss"][-1]:.6f}',
+        f'{rnn_history.history["mae"][-1]:.6f}',
+        f'{rnn_history.history["val_mae"][-1]:.6f}',
+    ],
+    'LSTM': [
+        f'{lstm_test_loss:.6f}',
+        f'{lstm_test_mae:.6f}',
+        f'{lstm_rmse:.2f}',
+        f'{lstm_mae_denorm:.2f}',
+        f'{lstm_history.history["loss"][-1]:.6f}',
+        f'{lstm_history.history["val_loss"][-1]:.6f}',
+        f'{lstm_history.history["mae"][-1]:.6f}',
+        f'{lstm_history.history["val_mae"][-1]:.6f}',
+    ]
+}
+
+comparison_df = pd.DataFrame(metrics_data)
+
+print('\n' + '='*70)
+print('MODEL COMPARISON TABLE: SimpleRNN vs LSTM')
+print('='*70)
+print(comparison_df.to_string(index=False))
+print('='*70)
+
+# Compute winner for each metric
+print('\n--- WINNER BY METRIC ---')
+for i in range(len(comparison_df)):
+    if i < 4:  # For loss/error metrics, lower is better
+        rnn_val = float(comparison_df.loc[i, 'SimpleRNN'])
+        lstm_val = float(comparison_df.loc[i, 'LSTM'])
+        winner = 'SimpleRNN' if rnn_val < lstm_val else 'LSTM'
+        print(f'{comparison_df.loc[i, "Metric"]}: {winner} (RNN: {rnn_val:.6f} vs LSTM: {lstm_val:.6f})')
+
+# Comparison of RNN vs LSTM on test predictions
+fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+
+# Plot 1: Training Loss Comparison
+axes[0, 0].plot(rnn_history.history['loss'], label='RNN Train Loss', linewidth=2, alpha=0.7)
+axes[0, 0].plot(lstm_history.history['loss'], label='LSTM Train Loss', linewidth=2, alpha=0.7)
+axes[0, 0].set_title('Training Loss Comparison', fontsize=12, fontweight='bold')
+axes[0, 0].set_xlabel('Epoch')
+axes[0, 0].set_ylabel('MSE')
+axes[0, 0].legend()
+axes[0, 0].grid(True, alpha=0.3)
+
+# Plot 2: Validation Loss Comparison
+axes[0, 1].plot(rnn_history.history['val_loss'], label='RNN Val Loss', linewidth=2, alpha=0.7)
+axes[0, 1].plot(lstm_history.history['val_loss'], label='LSTM Val Loss', linewidth=2, alpha=0.7)
+axes[0, 1].set_title('Validation Loss Comparison', fontsize=12, fontweight='bold')
+axes[0, 1].set_xlabel('Epoch')
+axes[0, 1].set_ylabel('MSE')
+axes[0, 1].legend()
+axes[0, 1].grid(True, alpha=0.3)
+
+# Plot 3: Test Set Predictions vs Actual
+sample_idx = min(200, len(y_test_denorm))  # Show first 200 samples
+x_range = range(sample_idx)
+axes[1, 0].plot(x_range, y_test_denorm[:sample_idx], 'o-', label='Actual', linewidth=2, markersize=4, alpha=0.7)
+axes[1, 0].plot(x_range, rnn_pred_denorm[:sample_idx], 's-', label='RNN Pred', linewidth=2, markersize=4, alpha=0.7)
+axes[1, 0].plot(x_range, lstm_pred_denorm[:sample_idx], '^-', label='LSTM Pred', linewidth=2, markersize=4, alpha=0.7)
+axes[1, 0].set_title('Test Predictions vs Actual (First 200 Samples)', fontsize=12, fontweight='bold')
+axes[1, 0].set_xlabel('Sample Index')
+axes[1, 0].set_ylabel('Stock Price ($)')
+axes[1, 0].legend()
+axes[1, 0].grid(True, alpha=0.3)
+
+# Plot 4: Prediction Errors Distribution
+rnn_errors = np.abs(rnn_pred_denorm[:sample_idx] - y_test_denorm[:sample_idx])
+lstm_errors = np.abs(lstm_pred_denorm[:sample_idx] - y_test_denorm[:sample_idx])
+axes[1, 1].hist(rnn_errors, bins=30, alpha=0.6, label='RNN Error', color='blue')
+axes[1, 1].hist(lstm_errors, bins=30, alpha=0.6, label='LSTM Error', color='orange')
+axes[1, 1].set_title('Absolute Prediction Error Distribution', fontsize=12, fontweight='bold')
+axes[1, 1].set_xlabel('Absolute Error ($)')
+axes[1, 1].set_ylabel('Frequency')
+axes[1, 1].legend()
+axes[1, 1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+### Assignment 6: Implement a pretrained model
+
+# 1) Import required Python libraries and dataset
+import numpy as np
+import tensorflow as tf
+import tensorflow_datasets as tfds
+import matplotlib.pyplot as plt
+
+from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Dense, Dropout, GlobalAveragePooling2D, Input
+from tensorflow.keras.optimizers import Adam
+
+print('TensorFlow version:', tf.__version__)
+
+# Load an application dataset: Oxford-IIIT Pet (pet breed classification)
+(train_raw, val_raw, test_raw), ds_info = tfds.load(
+    'oxford_iiit_pet:3.*.*',
+    split=['train[:80%]', 'train[80%:]', 'test'],
+    as_supervised=True,
+    with_info=True
+)
+
+class_names = ds_info.features['label'].names
+num_classes = len(class_names)
+print('Number of classes:', num_classes)
+print('Example classes:', class_names[:5])
+
+# 2) Normalize dataset and prepare labels
+img_size = 128
+batch_size = 64
+
+def preprocess(image, label):
+    image = tf.image.resize(image, (img_size, img_size))
+    image = tf.cast(image, tf.float32) / 255.0
+    return image, label
+
+def make_dataset(ds, training=False):
+    ds = ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
+    if training:
+        ds = ds.shuffle(2000)
+    ds = ds.batch(batch_size).prefetch(tf.data.AUTOTUNE)
+    return ds
+
+# Use smaller subsets for faster experimentation
+train_raw_small = train_raw.take(2400)
+val_raw_small = val_raw.take(600)
+test_raw_small = test_raw.take(1200)
+
+train_ds = make_dataset(train_raw_small, training=True)
+val_ds = make_dataset(val_raw_small, training=False)
+test_ds = make_dataset(test_raw_small, training=False)
+
+print('Datasets are ready.')
+
+# Input pipeline is prepared in the previous cell at 128x128 for MobileNetV2
+print('Image size:', img_size)
+print('Batch size:', batch_size)
+
+# 3) Identify pretrained model to be used
+base_model = MobileNetV2(
+    weights='imagenet',
+    include_top=False,
+    input_tensor=Input(shape=(img_size, img_size, 3))
+)
+
+# Freeze base model initially for transfer learning
+base_model.trainable = False
+
+# Build classification head
+x = base_model.output
+x = GlobalAveragePooling2D()(x)
+x = Dense(128, activation='relu')(x)
+x = Dropout(0.2)(x)
+outputs = Dense(num_classes, activation='softmax')(x)
+
+model = Model(inputs=base_model.input, outputs=outputs)
+model.compile(
+    optimizer=Adam(learning_rate=1e-3),
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+model.summary()
+
+# 4) Fine-tune pretrained architecture (light fine-tuning for speed)
+base_model.trainable = True
+for layer in base_model.layers[:-20]:
+    layer.trainable = False
+
+model.compile(
+    optimizer=Adam(learning_rate=5e-5),
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+print('Trainable layers:', sum([int(l.trainable) for l in model.layers]))
+
+# 5) Train the model with training dataset
+epochs = 3
+
+history = model.fit(
+    train_ds,
+    validation_data=val_ds,
+    epochs=epochs,
+    verbose=1
+)
+
+# 6) Predict the model with testing dataset
+test_loss, test_acc = model.evaluate(test_ds, verbose=1)
+print(f'Test Loss: {test_loss:.4f}')
+print(f'Test Accuracy: {test_acc:.4f}')
+
+pred_probs = model.predict(test_ds, verbose=1)
+pred_classes = np.argmax(pred_probs, axis=1)
+true_classes = np.concatenate([y.numpy() for _, y in test_ds], axis=0)
+
+# Display a few sample predictions
+sample_n = 10
+for i in range(sample_n):
+    print(f'Sample {i+1}: True={class_names[int(true_classes[i])]}, Pred={class_names[int(pred_classes[i])]}')
+
+# 7) Model performance visualization (accuracy and loss)
+plt.figure(figsize=(12, 5))
+
+# Accuracy plot
+plt.subplot(1, 2, 1)
+plt.plot(history.history['accuracy'], label='Train Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title('Model Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+# Loss plot
+plt.subplot(1, 2, 2)
+plt.plot(history.history['loss'], label='Train Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Model Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Visualize a few test predictions
+sample_images = []
+sample_labels = []
+for image_batch, label_batch in test_ds.unbatch().batch(8).take(1):
+    sample_images = image_batch.numpy()
+    sample_labels = label_batch.numpy()
+
+sample_preds = np.argmax(model.predict(sample_images, verbose=0), axis=1)
+
+plt.figure(figsize=(14, 4))
+for i in range(8):
+    plt.subplot(2, 4, i + 1)
+    plt.imshow(sample_images[i])
+    plt.title(f'T:{class_names[int(sample_labels[i])]}\nP:{class_names[int(sample_preds[i])]}')
+    plt.axis('off')
+plt.tight_layout()
+plt.show()
+
+### Assignment 7: Generate examples for Image datasets using GANs
+
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow.keras import layers, models, optimizers
+
+# Reproducibility
+np.random.seed(42)
+tf.random.set_seed(42)
+
+# Load image dataset (MNIST)
+(x_train, _), (_, _) = tf.keras.datasets.mnist.load_data()
+
+# Normalize to [-1, 1] and add channel dimension
+x_train = x_train.astype("float32")
+x_train = (x_train - 127.5) / 127.5
+x_train = np.expand_dims(x_train, axis=-1)
+
+# Use a subset for faster GAN training
+x_train = x_train[:20000]
+
+batch_size = 128
+buffer_size = x_train.shape[0]
+latent_dim = 64
+epochs = 15
+
+train_dataset = tf.data.Dataset.from_tensor_slices(x_train).shuffle(buffer_size).batch(batch_size, drop_remainder=True)
+
+print("Dataset shape:", x_train.shape)
+print("Batch size:", batch_size)
+print("Latent dimension:", latent_dim)
+
+def build_generator(latent_dim=64):
+    model = models.Sequential(name="Generator")
+    model.add(layers.Input(shape=(latent_dim,)))
+    model.add(layers.Dense(7 * 7 * 128, use_bias=False))
+    model.add(layers.BatchNormalization())
+    model.add(layers.LeakyReLU(negative_slope=0.2))
+
+    model.add(layers.Reshape((7, 7, 128)))
+
+    model.add(layers.Conv2DTranspose(64, kernel_size=5, strides=1, padding="same", use_bias=False))
+    model.add(layers.BatchNormalization())
+    model.add(layers.LeakyReLU(negative_slope=0.2))
+
+    model.add(layers.Conv2DTranspose(32, kernel_size=5, strides=2, padding="same", use_bias=False))
+    model.add(layers.BatchNormalization())
+    model.add(layers.LeakyReLU(negative_slope=0.2))
+
+    model.add(layers.Conv2DTranspose(1, kernel_size=5, strides=2, padding="same", activation="tanh"))
+    return model
+
+
+def build_discriminator():
+    model = models.Sequential(name="Discriminator")
+    model.add(layers.Input(shape=(28, 28, 1)))
+    model.add(layers.Conv2D(32, kernel_size=5, strides=2, padding="same"))
+    model.add(layers.LeakyReLU(negative_slope=0.2))
+    model.add(layers.Dropout(0.3))
+
+    model.add(layers.Conv2D(64, kernel_size=5, strides=2, padding="same"))
+    model.add(layers.LeakyReLU(negative_slope=0.2))
+    model.add(layers.Dropout(0.3))
+
+    model.add(layers.Flatten())
+    model.add(layers.Dense(1, activation="sigmoid"))
+    return model
+
+
+generator = build_generator(latent_dim)
+discriminator = build_discriminator()
+
+generator.summary()
+discriminator.summary()
+
+# Loss and optimizers
+bce = tf.keras.losses.BinaryCrossentropy(from_logits=False)
+g_optimizer = optimizers.Adam(learning_rate=2e-4, beta_1=0.5)
+d_optimizer = optimizers.Adam(learning_rate=2e-4, beta_1=0.5)
+
+
+def discriminator_loss(real_output, fake_output):
+    real_labels = tf.ones_like(real_output)
+    fake_labels = tf.zeros_like(fake_output)
+    real_loss = bce(real_labels, real_output)
+    fake_loss = bce(fake_labels, fake_output)
+    return real_loss + fake_loss
+
+
+def generator_loss(fake_output):
+    fool_labels = tf.ones_like(fake_output)
+    return bce(fool_labels, fake_output)
+
+
+@tf.function
+def train_step(real_images):
+    noise = tf.random.normal([batch_size, latent_dim])
+
+    with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
+        generated_images = generator(noise, training=True)
+
+        real_output = discriminator(real_images, training=True)
+        fake_output = discriminator(generated_images, training=True)
+
+        g_loss = generator_loss(fake_output)
+        d_loss = discriminator_loss(real_output, fake_output)
+
+    gradients_of_generator = gen_tape.gradient(g_loss, generator.trainable_variables)
+    gradients_of_discriminator = disc_tape.gradient(d_loss, discriminator.trainable_variables)
+
+    g_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
+    d_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
+
+    return g_loss, d_loss
+
+g_losses = []
+d_losses = []
+
+for epoch in range(1, epochs + 1):
+    epoch_g = []
+    epoch_d = []
+
+    for image_batch in train_dataset:
+        g_loss, d_loss = train_step(image_batch)
+        epoch_g.append(float(g_loss.numpy()))
+        epoch_d.append(float(d_loss.numpy()))
+
+    g_mean = float(np.mean(epoch_g))
+    d_mean = float(np.mean(epoch_d))
+
+    g_losses.append(g_mean)
+    d_losses.append(d_mean)
+
+    if epoch % 5 == 0 or epoch == 1:
+        print(f"Epoch {epoch:02d}/{epochs} | G Loss: {g_mean:.4f} | D Loss: {d_mean:.4f}")
+
+print("Training complete.")
+
+plt.figure(figsize=(10, 5))
+plt.plot(g_losses, label="Generator Loss")
+plt.plot(d_losses, label="Discriminator Loss")
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.title("GAN Training Loss vs Epoch")
+plt.legend()
+plt.grid(alpha=0.3)
+plt.show()
+
+def generate_and_plot_samples(generator_model, latent_dim=64, num_images=16):
+    noise = tf.random.normal([num_images, latent_dim])
+    generated = generator_model(noise, training=False)
+
+    # Convert back from [-1, 1] to [0, 1] for display
+    generated = (generated + 1.0) / 2.0
+
+    plt.figure(figsize=(6, 6))
+    for i in range(num_images):
+        plt.subplot(4, 4, i + 1)
+        plt.imshow(generated[i, :, :, 0], cmap="gray")
+        plt.axis("off")
+    plt.tight_layout()
+    plt.show()
+
+
+def discriminator_performance(discriminator_model, real_images, generator_model, latent_dim=64, sample_size=1000):
+    sample_size = min(sample_size, real_images.shape[0])
+
+    idx = np.random.choice(real_images.shape[0], sample_size, replace=False)
+    real_sample = real_images[idx]
+
+    noise = tf.random.normal([sample_size, latent_dim])
+    fake_sample = generator_model(noise, training=False)
+
+    real_pred = discriminator_model(real_sample, training=False).numpy().flatten()
+    fake_pred = discriminator_model(fake_sample, training=False).numpy().flatten()
+
+    real_acc = np.mean(real_pred > 0.5)
+    fake_acc = np.mean(fake_pred < 0.5)
+    overall_acc = (real_acc + fake_acc) / 2.0
+
+    print(f"Discriminator Real Accuracy: {real_acc * 100:.2f}%")
+    print(f"Discriminator Fake Accuracy: {fake_acc * 100:.2f}%")
+    print(f"Discriminator Overall Accuracy: {overall_acc * 100:.2f}%")
+
+
+# Visual test of generator output
+generate_and_plot_samples(generator, latent_dim=latent_dim, num_images=16)
+
+# Quantitative discriminator test
+discriminator_performance(discriminator, x_train, generator, latent_dim=latent_dim, sample_size=1000)

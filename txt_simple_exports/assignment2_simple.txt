@@ -1,0 +1,37 @@
+# pip install tensorflow numpy
+
+import numpy as np
+import tensorflow as tf
+
+
+def main():
+    t1 = tf.constant([1, 2, 3, 4], dtype=tf.float32)
+    t2 = tf.constant([[1, 2], [3, 4]], dtype=tf.float32)
+
+    print("t1:", t1)
+    print("shape:", t1.shape, "rank:", tf.rank(t1).numpy())
+    print("t2:\n", t2)
+    print("shape:", t2.shape, "rank:", tf.rank(t2).numpy())
+
+    print("Add:", tf.add(t1, 5.0).numpy())
+    print("Mul:", tf.multiply(t1, 2.0).numpy())
+
+    m1 = tf.constant([[1, 2, 3], [4, 5, 6]], dtype=tf.float32)
+    m2 = tf.constant([[1, 2], [3, 4], [5, 6]], dtype=tf.float32)
+    print("MatMul:\n", tf.matmul(m1, m2).numpy())
+
+    print("Mean t1:", tf.reduce_mean(t1).numpy())
+    print("Std t1:", tf.math.reduce_std(t1).numpy())
+
+    a = tf.constant([[1, 2], [3, 4]])
+    b = tf.constant([[5, 6], [7, 8]])
+    print("Concat axis=0:\n", tf.concat([a, b], axis=0).numpy())
+    print("Stack axis=0 shape:", tf.stack([a, b], axis=0).shape)
+
+    arr = np.array([10, 20, 30])
+    t3 = tf.convert_to_tensor(arr)
+    print("NumPy -> Tensor:", t3.numpy())
+
+
+if __name__ == "__main__":
+    main()
